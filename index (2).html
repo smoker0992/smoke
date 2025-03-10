@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>席決めルーレットアプリ</title>
+    <style>
+        body {
+            font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            font-size: 32px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .time-info {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .current-time {
+            margin-bottom: 5px;
+        }
+        .next-reset {
+            color: green;
+        }
+        .input-section {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        input {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .add-button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            margin-left: 10px;
+            border-radius: 4px;
+        }
+        h2 {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .name-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .name-tag {
+            background-color: #f0f0f0;
+            padding: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: calc(20% - 10px);
+            box-sizing: border-box;
+            text-align: center;
+            border: 2px solid #ddd;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .name-tag.selected {
+            background-color: #4CAF50;
+            color: white;
+            border-color: #388E3C;
+        }
+        .action-message {
+            text-align: center;
+            border: 1px solid #ccc;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .assign-button {
+            background-color: #ccc;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .delete-button {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 4px;
+            display: none;
+        }
+        .seat-layout {
+            margin-bottom: 20px;
+        }
+        .seat-row {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        .seat-section {
+            display: flex;
+            flex-direction: column;
+            margin: 0 10px;
+        }
+        .seat-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 120px);
+            grid-template-rows: repeat(2, 90px);
+            gap: 5px;
+        }
+        .seat {
+            border: 2px solid #4CAF50;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: #f9f9f9;
+            position: relative;
+        }
+        .seat-number {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            background-color: #4CAF50;
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 12px;
+        }
+        .seat-name {
+            max-width: 90%;
+            word-break: break-all;
+            text-align: center;
+        }
+        .reset-all-button {
+            display: block;
+            background-color: white;
+            color: red;
+            border: 1px solid red;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 4px;
+            margin: 0 auto;
+        }
+        .roulette-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            color: white;
+        }
+        .roulette-number {
+            font-size: 120px;
+            margin: 30px 0;
+            animation: pulse 0.5s infinite alternate;
+        }
+        .result-number {
+            font-size: 150px;
+            margin: 30px 0;
+            color: #4CAF50;
+        }
+        @keyframes pulse {
+            from { transform: scale(1); }
+            to { transform: scale(1.1); }
+        }
+        .reset-confirm-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .reset-confirm-box {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            max-width: 80%;
+        }
+        .reset-confirm-title {
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+        .reset-confirm-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+        .reset-yes-button {
+            background-color: white;
+            color: red;
+            border: 1px solid red;
+            padding: 10px 30px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .reset-no-button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 30px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .reset-logs {
+            margin-top: 20px;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+        }
+        .reset-log-item {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>席決めルーレット</h1>
+    
+    <div class="time-info">
+        <div class="current-time" id="current-time">現在時刻: 2025/3/10 19:55:23</div>
+        <div class="next-reset" id="next-reset">次回リセット: 2025/3/17 6:00:00</div>
+    </div>
+    
+    <div class="input-section">
+        <input type="text" id="name-input" placeholder="名前を入力してください">
+        <button class="add-button" id="add-button">追加</button>
+    </div>
+    
+    <h2>参加者名簿</h2>
+    <div class="name-list" id="name-list"></div>
+    
+    <h2>席番号ルーレット</h2>
+    <div class="action-message" id="action-message">名前をタップして席番号を決めてください</div>
+    
+    <div class="action-buttons">
+        <button class="assign-button" id="assign-button">席に割り当て</button>
+        <button class="delete-button" id="delete-button">選択した名前を削除</button>
+    </div>
+    
+    <h2>席配置</h2>
+    <div class="seat-layout" id="seat-layout">
+        <div class="seat-row">
+            <div class="seat-section">
+                <div class="seat-grid">
+                    <div class="seat" id="seat-20"><div class="seat-number">20</div><div class="seat-name"></div></div>
+                    <div class="seat" id="seat-19"><div class="seat-number">19</div><div class="seat-name"></div></div>
+                    <div class="seat" id="seat-14"><div class="seat-number">14</div><div class="seat-name"></div></div>
+                    <div class="seat" id="seat-13"><div class="seat-number">13</div><div class="seat-name"></div></div>
+                </div>
+            </div>
+            <div class="seat-section">
+                <div class="seat-grid">
+                    <div class="seat" id="seat-18"><div class="seat-number">18</div><div class="seat-name"></div></div>
+                    <div class="seat" id="seat-17"><div class="seat-number">17</div><div class="seat-name"></div></div>
+                    <div class="seat" id="seat-12"><div class="seat-number">12</div><div class="seat-name"></div></div>
+                    <div class="seat" id="seat-11"><div class="seat-number">11</div><div class="seat-name"></div></div>
+                </div>
+            </div>
+            <div class="seat-section">
+                <div class="seat-grid">
+                    <div class="seat" id="seat-16"><div class="seat-number">16</div><div class="seat-name"></div></div>
+                    <div class="seat" id="seat-15"><div class="seat-number">15</div><div class="seat-name"></div></div>
+                    <div class="seat" id="seat-10"><div class="seat-number">10</div><div class="seat-name"></div></div>
+                    <div class="seat" id="seat-9"><div class="seat-number">9</div><div class="seat-name"></div></div>
+                </div>
+            </div>
+        </div>
+        <div class="seat-row" style="margin-top: -10px;">
+            <div class="seat-section">
+                <div class="seat-grid" style="visibility: hidden;">
+                    <div class="seat"><div class="seat-number">0</div><div class="seat-name"></div></div>
+                    <div class="seat"><div class="seat-number">0</div><div class="seat-name"></div></div>
+                    <div class="seat"><div class="seat-number">0</div><div class="seat-name"></div></div>
+                    <div class="seat"><div class="seat-number">0</div><div class="seat-name"></div></div>
+                </div>
+            </div>
+            <div class="seat-section">
+                <div class="seat-grid">
+                    <div class="seat" id="seat-8"><div class="seat-number">8</div><div class="seat-name"></div></div>
+                    <div class="seat" id="seat-7"><div class="seat-number">7</div><div class="seat-name"></div></div>
+                    <div class="seat" id="seat-4"><div class="seat-number">4</div><div class="seat-name"></div></div>
+                    <div class="seat" id="seat-3"><div class="seat-number">3</div><div class="seat-name"></div></div>
+                </div>
+            </div>
+            <div class="seat-section">
+                <div class="seat-grid">
+                    <div class="seat" id="seat-6"><div class="seat-number">6</div><div class="seat-name"></div></div>
+                    <div class="seat" id="seat-5"><div class="seat-number">5</div><div class="seat-name"></div></div>
+                    <div class="seat" id="seat-2"><div class="seat-number">2</div><div class="seat-name"></div></div>
+                    <div class="seat" id="seat-1"><div class="seat-number">1</div><div class="seat-name"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <button class="reset-all-button" id="reset-all-button">全ての席をリセット</button>
+    
+    <div class="reset-logs" id="reset-logs">
+        <!-- リセットログがここに表示されます -->
+    </div>
+    
+    <div id="roulette-overlay" class="roulette-overlay" style="display: none;">
+        <div>ルーレット中...</div>
+        <div class="roulette-number" id="roulette-number">0</div>
+    </div>
+    
+    <div id="result-overlay" class="roulette-overlay" style="display: none;">
+        <div>決定！</div>
+        <div class="result-number" id="result-number">0</div>
+    </div>
+    
+    <div id="reset-confirm-overlay" class="reset-confirm-overlay" style="display: none;">
+        <div class="reset-confirm-box">
+            <div class="reset-confirm-title">本当にリセットしますか？</div>
+            <div class="reset-confirm-buttons">
+                <button class="reset-yes-button" id="reset-yes-button">はい</button>
+                <button class="reset-no-button" id="reset-no-button">いいえ</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ローカルストレージからデータを読み込む
+        function loadFromLocalStorage() {
+            if (localStorage.getItem('allNames')) {
+                allNames = JSON.parse(localStorage.getItem('allNames'));
+            }
+            if (localStorage.getItem('activeNames')) {
+                activeNames = JSON.parse(localStorage.getItem('activeNames'));
+            }
+            if (localStorage.getItem('assignedSeats')) {
+                assignedSeats = JSON.parse(localStorage.getItem('assignedSeats'));
+            }
+            if (localStorage.getItem('resetLogs')) {
+                resetLogs = JSON.parse(localStorage.getItem('resetLogs'));
+            }
+        }
+        
+        // ローカルストレージにデータを保存
+        function saveToLocalStorage() {
+            localStorage.setItem('allNames', JSON.stringify(allNames));
+            localStorage.setItem('activeNames', JSON.stringify(activeNames));
+            localStorage.setItem('assignedSeats', JSON.stringify(assignedSeats));
+            localStorage.setItem('resetLogs', JSON.stringify(resetLogs));
+        }
+        
+        // 現在時刻と次回リセット日の設定
+        function updateDateTime() {
+            const now = new Date();
+            const formatted = now.getFullYear() + '/' + 
+                             String(now.getMonth() + 1).padStart(2, '0') + '/' + 
+                             String(now.getDate()).padStart(2, '0') + ' ' + 
+                             String(now.getHours()).padStart(2, '0') + ':' + 
+                             String(now.getMinutes()).padStart(2, '0') + ':' + 
+                             String(now.getSeconds()).padStart(2, '0');
+            
+            document.getElementById('current-time').textContent = '現在時刻: ' + formatted;
+            
+            // 次回の月曜日6時を計算
+            const nextMonday = new Date(now);
+            nextMonday.setDate(now.getDate() + (1 + 7 - now.getDay()) % 7);
+            nextMonday.setHours(6, 0, 0, 0);
+            
+            // 今日が月曜で、まだ6時前なら今日の6時
+            if (now.getDay() === 1 && now.getHours() < 6) {
+                nextMonday.setDate(now.getDate());
+            } else {
+                // 次の週の月曜に設定
+                nextMonday.setDate(nextMonday.getDate() + 7);
+            }
+            
+            const nextResetFormatted = nextMonday.getFullYear() + '/' + 
+                                      String(nextMonday.getMonth() + 1).padStart(2, '0') + '/' + 
+                                      String(nextMonday.getDate()).padStart(2, '0') + ' ' + 
+                                      '6:00:00';
+            
+            document.getElementById('next-reset').textContent = '次回リセット: ' + nextResetFormatted;
+            
+            // 月曜日6時になったらリセットログをクリア
+            if (now.getDay() === 1 && now.getHours() === 6 && now.getMinutes() === 0 && now.getSeconds() === 0) {
+                resetLogs = [];
+                saveToLocalStorage();
+                updateResetLogs();
+            }
+        }
+        
+        // 名前の追加処理
+        let allNames = []; // すべての名前を保存
+        let activeNames = []; // 参加者名簿に表示されている名前
+        let selectedName = null;
+        let assignedSeats = {};
+        let resetLogs = [];
+        
+        // ローカルストレージからデータをロード
+        loadFromLocalStorage();
+        
+        updateDateTime();
+        setInterval(updateDateTime, 1000);
+        
+        document.getElementById('add-button').addEventListener('click', function() {
+            const nameInput = document.getElementById('name-input');
+            const name = nameInput.value.trim();
+            
+            if (name) {
+                allNames.push(name);
+                activeNames.push(name);
+                // あいうえお順でソート
+                activeNames.sort((a, b) => a.localeCompare(b, 'ja'));
+                updateNameList();
+                nameInput.value = '';
+                saveToLocalStorage();
+            }
+        });
+        
+        document.getElementById('name-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('add-button').click();
+            }
+        });
+        
+        // 選択した名前を削除
+        document.getElementById('delete-button').addEventListener('click', function() {
+            if (!selectedName) return;
+            
+            // allNamesとactiveNamesから削除
+            allNames = allNames.filter(name => name !== selectedName);
+            activeNames = activeNames.filter(name => name !== selectedName);
+            
+            // 該当する席からも削除
+            for (let seatNum in assignedSeats) {
+                if (assignedSeats[seatNum] === selectedName) {
+                    delete assignedSeats[seatNum];
+                }
+            }
+            
+            selectedName = null;
+            updateNameList();
+            updateSeatLayout();
+            document.getElementById('action-message').textContent = '名前をタップして席番号を決めてください';
+            document.getElementById('assign-button').style.backgroundColor = '#ccc';
+            document.getElementById('delete-button').style.display = 'none';
+            saveToLocalStorage();
+        });
+        
+        function updateNameList() {
+            const nameList = document.getElementById('name-list');
+            nameList.innerHTML = '';
+            
+            activeNames.forEach(name => {
+                const nameTag = document.createElement('div');
+                nameTag.className = 'name-tag';
+                if (name === selectedName) {
+                    nameTag.classList.add('selected');
+                }
+                nameTag.textContent = name;
+                nameTag.addEventListener('click', function() {
+                    if (selectedName === name) {
+                        selectedName = null;
+                        nameTag.classList.remove('selected');
+                        document.getElementById('action-message').textContent = '名前をタップして席番号を決めてください';
+                        document.getElementById('assign-button').style.backgroundColor = '#ccc';
+                        document.getElementById('delete-button').style.display = 'none';
+                    } else {
+                        const selectedElements = document.querySelectorAll('.name-tag.selected');
+                        selectedElements.forEach(el => el.classList.remove('selected'));
+                        selectedName = name;
+                        nameTag.classList.add('selected');
+                        document.getElementById('action-message').textContent = name + 'さんの席番号を決めます';
+                        document.getElementById('assign-button').style.backgroundColor = '#4CAF50';
+                        document.getElementById('delete-button').style.display = 'inline-block';
+                    }
+                });
+                nameList.appendChild(nameTag);
+            });
+        }
+        
+        // 席番号ルーレット処理
+        document.getElementById('assign-button').addEventListener('click', function() {
+            if (!selectedName) return;
+            
+            const availableSeatNumbers = [];
+            for (let i = 1; i <= 20; i++) {
+                if (!assignedSeats[i]) {
+                    availableSeatNumbers.push(i);
+                }
+            }
+            
+            if (availableSeatNumbers.length === 0) {
+                alert('全ての席が埋まっています。席をリセットしてください。');
+                return;
+            }
+            
+            // ルーレット表示
+            const rouletteOverlay = document.getElementById('roulette-overlay');
+            const rouletteNumber = document.getElementById('roulette-number');
+            
+            rouletteOverlay.style.display = 'flex';
+            
+            let counter = 0;
+            let finalSeatNumber;
+            const rouletteInterval = setInterval(() => {
+                const randomIndex = Math.floor(Math.random() * availableSeatNumbers.length);
+                const randomSeatNumber = availableSeatNumbers[randomIndex];
+                rouletteNumber.textContent = randomSeatNumber;
+                counter++;
+                
+                if (counter >= 17) { // 約2.5秒間（17回 × 0.15秒）
+                    clearInterval(rouletteInterval);
+                    
+                    // 最終的な席番号を保存
+                    finalSeatNumber = parseInt(rouletteNumber.textContent);
+                    
+                    // 結果表示を即座に緑色に変更
+                    rouletteOverlay.style.display = 'none';
+                    const resultNumber = document.getElementById('result-number');
+                    const resultOverlay = document.getElementById('result-overlay');
+                    
+                    resultNumber.textContent = finalSeatNumber;
+                    resultOverlay.style.display = 'flex';
+                    
+                    // 席に割り当て
+                    assignedSeats[finalSeatNumber] = selectedName;
+                    
+                    // 参加者名簿から削除
+                    activeNames = activeNames.filter(name => name !== selectedName);
+                    
+                    setTimeout(() => {
+                        resultOverlay.style.display = 'none';
+                        updateSeatLayout();
+                        selectedName = null;
+                        updateNameList();
+                        document.getElementById('action-message').textContent = '名前をタップして席番号を決めてください';
+                        document.getElementById('assign-button').style.backgroundColor = '#ccc';
+                        document.getElementById('delete-button').style.display = 'none';
+                        saveToLocalStorage();
+                    }, 2000); // 2秒間表示
+                }
+            }, 150);
+        });
+        
+        // 席配置の更新
+        function updateSeatLayout() {
+            for (let i = 1; i <= 20; i++) {
+                const seatElement = document.getElementById(`seat-${i}`);
+                const seatNameElement = seatElement.querySelector('.seat-name');
+                
+                if (assignedSeats[i]) {
+                    seatNameElement.textContent = assignedSeats[i];
+                } else {
+                    seatNameElement.textContent = '';
+                }
+            }
+        }
+        
+        // リセット確認オーバーレイの処理
+        document.getElementById('reset-all-button').addEventListener('click', function() {
+            document.getElementById('reset-confirm-overlay').style.display = 'flex';
+        });
+        
+        document.getElementById('reset-yes-button').addEventListener('click', function() {
+            // リセットログに追加
+            const now = new Date();
+            const formattedDate = now.getFullYear() + '/' + 
+                                String(now.getMonth() + 1).padStart(2, '0') + '/' + 
+                                String(now.getDate()).padStart(2, '0') + ' ' + 
+                                String(now.getHours()).padStart(2, '0') + ':' + 
+                                String(now.getMinutes()).padStart(2, '0') + ':' + 
+                                String(now.getSeconds()).padStart(2, '0');
+            
+            resetLogs.push(formattedDate);
+            
+            // 席に割り当てられた名前を参加者名簿に戻す
+            for (let seatNum in assignedSeats) {
+                if (!activeNames.includes(assignedSeats[seatNum]) && 
+                    allNames.includes(assignedSeats[seatNum])) {
+                    activeNames.push(assignedSeats[seatNum]);
+                }
+            }
+            
+            activeNames.sort((a, b) => a.localeCompare(b, 'ja'));
+            assignedSeats = {};
+            selectedName = null;
+            
+            updateNameList();
+            updateSeatLayout();
+            updateResetLogs();
+            document.getElementById('action-message').textContent = '名前をタップして席番号を決めてください';
+            document.getElementById('assign-button').style.backgroundColor = '#ccc';
+            document.getElementById('delete-button').style.display = 'none';
+            document.getElementById('reset-confirm-overlay').style.display = 'none';
+            saveToLocalStorage();
+        });
+        
+        document.getElementById('reset-no-button').addEventListener('click', function() {
+            document.getElementById('reset-confirm-overlay').style.display = 'none';
+        });
+        
+        // リセットログの更新
+        function updateResetLogs() {
+            const resetLogsElement = document.getElementById('reset-logs');
+            resetLogsElement.innerHTML = '<div style="margin-bottom: 10px;">過去のリセット記録：</div>';
+            
+            if (resetLogs.length === 0) {
+                resetLogsElement.innerHTML += '<div class="reset-log-item">まだリセットの記録はありません</div>';
+            } else {
+                resetLogs.forEach(log => {
+                    resetLogsElement.innerHTML += `<div class="reset-log-item">${log} にリセットされました</div>`;
+                });
+            }
+        }
+        
+        // 初期化
+        updateNameList();
+        updateSeatLayout();
+        updateResetLogs();
+    </script>
+</body>
+</html>
